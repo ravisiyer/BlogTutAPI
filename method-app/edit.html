@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        padding: 20px;
+        margin: 20px;
+        max-width: 600px;
+      }
+      div,
+      label,
+      button,
+      input {
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="edit-frm">
+      <h2>Edit Title</h2>
+      <div id="div-edit">
+        <label for="edittitle">Title:</label><br />
+        <input
+          type="text"
+          size="80"
+          id="edittitle"
+          name="edittitle"
+          value=""
+        /><br />
+      </div>
+      <input type="submit" id="save" value="Save" />
+      <div id="edit-frm-alert"></div>
+    </form>
+    <hr />
+    <a href="index.html">Back to Titles home page</a>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+      const editfrm = document.getElementById("edit-frm");
+      const edittitle = document.getElementById("edittitle");
+      const savebtn = document.getElementById("save");
+      const editfrmalert = document.getElementById("edit-frm-alert");
+
+      const queryString = window.location.search;
+      console.log(queryString);
+      const urlParams = new URLSearchParams(queryString);
+      const postId = urlParams.get("id");
+      console.log(postId);
+      let oldtitle = "";
+
+      editfrm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        // console.log("Default submit action prevented");
+        editfrmalert.innerHTML = "";
+        try {
+          const axiosResp = await axios.put(`/api/posts/${postId}`, {
+            title: edittitle.value,
+          });
+          const { data: apiResponse } = axiosResp;
+          console.log(apiResponse);
+
+          if (apiResponse.success) {
+            editfrmalert.innerHTML = `<pre>Title updated to: "${apiResponse.data.title}"</pre>`;
+            oldtitle = edittitle.value = apiResponse.data.title;
+            // showTitle();
+          } else {
+            editfrmalert.innerHTML =
+              "Failed to update title. Details: " + apiResponse.msg;
+            edittitle.value = oldtitle;
+          }
+        } catch (error) {
+          console.log(error.response.data);
+          editfrmalert.innerHTML =
+            "Failed to update title. Details: " +
+            //API error handling of database error has changed to
+            //send error.message instead of error object.
+            // error.response.data.msg.message;
+            error.response.data.msg;
+          edittitle.value = oldtitle;
+        }
+        // showTitle();
+      });
+
+      async function showTitle() {
+        try {
+          res = await axios.get(`/api/posts/${postId}`);
+          // ideally above res should be checked for success being true
+          // but probability of error is low for simple (single user) usage
+          // Further, if there is an error it may always go to catch as
+          // axios seems to always throw an error if status code indicates error
+          const title = res.data.data.title;
+          console.log(title);
+          edittitle.value = title;
+          oldtitle = title;
+        } catch (error) {
+          console.log(error);
+        }
+      }
+      showTitle();
+    </script>
+  </body>
+</html>

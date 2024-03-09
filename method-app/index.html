@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        padding: 20px;
+        margin: 20px;
+        max-width: 600px;
+      }
+      div,
+      label,
+      button,
+      input {
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="frm">
+      <label for="title">Post Title:</label><br />
+      <input type="text" size="80" id="title" name="title" value="Ram" /><br />
+      <input type="submit" value="Add" />
+      <hr />
+      <div>
+        Version: Axios async await for get and post, using api with MongoDB
+        <hr />
+        List of Post Titles:
+      </div>
+      <div id="div-titles"></div>
+      <hr />
+      <div id="form-alert" style="color: red"></div>
+    </form>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+      let frm = document.getElementById("frm");
+      let divusers = document.getElementById("div-titles");
+      let formAlert = document.getElementById("form-alert");
+      let title = document.getElementById("title");
+      console.log(title.value);
+      frm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        // console.log("Default submit action prevented");
+        formAlert.innerHTML = "";
+        try {
+          const axiosResp = await axios.post("/api/posts", {
+            title: title.value,
+          });
+
+          // console.log(`axiosResp: ${axiosResp}`); //Gives [object: Object]
+          // console.log(axiosResp); //Gives the object information!
+          // Too many datas! And so this attempt to make it more readable
+          const { data: apiResponse } = axiosResp;
+          // console.log(`apiResponse(axiosResp.data): ${apiResponse}`);
+          // console.log(apiResponse);
+          if (apiResponse.success) {
+            formAlert.innerHTML = `<pre>"${apiResponse.data.title}" added.</pre>`;
+            title.value = apiResponse.data.title;
+            getPostTitles();
+          } else {
+            formAlert.innerHTML =
+              "Failed to add title. Details: " + apiResponse.msg;
+          }
+        } catch (error) {
+          console.log(error.response.data);
+          formAlert.innerHTML =
+            "Failed to add title. Details: " + error.response.data.msg;
+          // Below comments and code are no longer valid as API error handling of database error
+          // has changed to send error.message instead of error object.
+          // Database validation error needs error.response.data.msg.message
+          // Our api error needs error.response.data.msg
+          // if (error.response.data.msg.message === undefined) {
+          //   // Not a database validation message; our API error message
+          //   formAlert.innerHTML =
+          "Failed to add title. Details: " + error.response.data.msg;
+          // } else {
+          //   formAlert.innerHTML =
+          "Failed to add title. Details: " + error.response.data.msg.message;
+          // }
+        }
+      });
+      getPostTitles();
+      async function getPostTitles() {
+        divusers.innerHTML = "";
+        try {
+          res = await axios.get("/api/posts");
+          // res = await axios.get("/api/postsx"); //To test error handling; error handling works (goes to catch)
+
+          console.log(res);
+          let posts = res.data.data;
+          // console.log(posts);
+          posts.forEach((post) => {
+            // console.log(post._id);
+            // In div below, I could have used a class and selected that class in style section in head
+            // instead of applying style in the div tag itself. But I wanted to just try it out.
+            divusers.innerHTML += `<div style="display: grid; grid-template-columns: auto 80px 80px;">
+              <pre style="display:inline">"${post.title}"</pre>
+              <button type="button" data-id=${post._id}>Delete</button>
+              <button type="button" data-id=${post._id}>Edit</button>
+              </div>`;
+          });
+        } catch (error) {
+          // handle error
+          console.log("In catch");
+          console.log(error);
+          divusers.innerHTML +=
+            '<span style="color:red"> Cannot get data</span>';
+        }
+      }
+      divusers.addEventListener("click", async (e) => {
+        let targetText = e.target.innerHTML;
+        let targetNodeName = e.target.nodeName;
+
+        // console.log(targetText);
+        // console.log(targetNodeName);
+        if (targetNodeName === "BUTTON" && targetText === "Delete") {
+          let postId = e.target.dataset.id;
+          console.log(postId);
+          formAlert.innerHTML = "";
+          try {
+            const axiosResp = await axios.delete(`/api/posts/${postId}`);
+            const { data: apiResponse } = axiosResp;
+            if (apiResponse.success) {
+              formAlert.innerHTML = `<pre>"${apiResponse.data.title}" deleted.</pre>`;
+              getPostTitles();
+            } else {
+              formAlert.innerHTML =
+                "Failed to delete title. Details: " + apiResponse.msg;
+            }
+          } catch (error) {
+            console.log(error);
+            formAlert.innerHTML =
+              "Failed to delete title. Details: " + error.response.data.msg;
+          }
+        }
+        if (targetNodeName === "BUTTON" && targetText === "Edit") {
+          let postId = e.target.dataset.id;
+          console.log(postId);
+          window.location.href = `edit.html?id=${postId}`;
+        }
+      });
+    </script>
+  </body>
+</html>
