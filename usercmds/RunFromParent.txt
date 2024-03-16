@@ -1,0 +1,1 @@
+The usercmds programs have to be run from parent directory. Otherwise .env file seems to not get picked up correctly.

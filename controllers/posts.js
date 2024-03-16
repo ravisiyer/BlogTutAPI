@@ -15,21 +15,13 @@ const getPost = asyncWrapper(async (req, res, next) => {
     return next(
       createAPICustomError(404, `Post with _id: ${postID} does not exist.`)
     );
-    // return res.status(404).json({
-    //   success: false,
-    //   msg: `Post with _id: ${postID} does not exist.`,
-    // });
   }
   return res.status(200).json({ success: true, data: post });
 });
 
 const createPost = asyncWrapper(async (req, res, next) => {
   const { title, body, datetime } = req.body;
-  // console.log(title);
-  // console.log(body);
-  // console.log(datetime);
   if (title) {
-    // even if title is "" (empty string), the test seems to return false
     const post = await Post.create({
       title: title,
       body: body,
@@ -38,7 +30,6 @@ const createPost = asyncWrapper(async (req, res, next) => {
     return res.status(201).json({ success: true, data: post });
   } else {
     return next(createAPICustomError(500, "Please supply title"));
-    // return res.status(500).json({ success: false, msg: "Please supply title" });
   }
 });
 
@@ -54,10 +45,6 @@ const updatePost = asyncWrapper(async (req, res, next) => {
     return next(
       createAPICustomError(404, `Post with _id: ${postID} does not exist.`)
     );
-    // return res.status(404).json({
-    //   success: false,
-    //   msg: `Post with _id: ${postID} does not exist.`,
-    // });
   }
   return res.status(200).json({ success: true, data: post });
 });
@@ -70,10 +57,6 @@ const deletePost = asyncWrapper(async (req, res, next) => {
     return next(
       createAPICustomError(404, `Post with _id: ${postID} does not exist.`)
     );
-    // return res.status(404).json({
-    //   success: false,
-    //   msg: `Post with _id: ${postID} does not exist.`,
-    // });
   }
   return res.status(200).json({ success: true, data: post });
 });
